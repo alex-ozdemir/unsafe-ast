@@ -1,0 +1,16 @@
+[package]
+name = "analyze-unsafe"
+version = "0.1.0"
+authors = ["Alex Ozdemir <aozdemir@hmc.edu>"]
+
+[dependencies]
+glob = "0"
+rustc-serialize = "0"
+
+[[bin]]
+name = "emit-ast"
+path = "src/emit-ast/main.rs"
+
+[[bin]]
+name = "download"
+path = "src/download/main.rs"
