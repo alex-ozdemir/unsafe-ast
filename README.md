@@ -114,7 +114,18 @@ $ pv json.out | jq 'select(.functions | map(select(.unsaf)) | length > 0) | .nam
 crates_with_unsafe_fns.txt
 ```
 
-and we could turn the above list into a count by running
+Let's break down that command:
+   1. `pv json.out | jq'`: We input the data into `jq`  using `pv` (`cat` could
+      be used instead of `pv`, but then we wouldn't get information about how
+      fast the analysis was running).
+   4. `select(.functions | map(select(.unsaf)) | length > 0)`: We get the array
+      of functions for the crate, filter that array, keeping only the unsafe
+      functions, and keep the crate only if there was at least one unsafe
+      function.
+   5. `name`: We get the name of the crate
+   6. `-c`: Print output in compressed form: One JSON value per line.
+
+We could turn the above list into a count by running
 
 ```bash
 $ wc -l crates_with_unsafe_fns.txt
