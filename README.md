@@ -110,7 +110,7 @@ At any rate, we can get started doing some analysis. If we wanted a list of all
 the crates with unsafe functions we could run:
 
 ```bash
-$ pv json.out | jq 'select(.functions | map(select(.unsaf)) | length > 0) | .name' -c \
+$ pv json.out | jq 'select(.functions | map(select(.unsaf)) | length > 0) | .name' -c > \
 crates_with_unsafe_fns.txt
 ```
 
@@ -137,7 +137,7 @@ at the beginning of our jq program. As an example, lets look at the unsafe
 operations performed in the `abort_on_panic` crate:
 
 ```bash
-$ pv json.out | jq 'include "unsafe"; select(.name == "abort_on_panic") | .functions[].block | get_all_uses | select(is_indexed_unsafe_use)' > unsafe_uses.json
+$ pv json.out | jq 'include "unsafe"; select(.name == "abort_on_panic") | .functions[].block | get_all_uses | select(is_indexed_unsafe_use)'
 ```
 
 Let's break that command down into steps:
