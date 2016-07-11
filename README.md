@@ -22,6 +22,8 @@ able to run (`pacman -S pv`).
 
 ### Step 2: Unzip the data.
 
+Note: The data is actually public yet (soon)!
+
 Go into the data and analysis folder:
 
 ```bash
