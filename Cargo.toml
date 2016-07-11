@@ -1,5 +1,5 @@
 [package]
-name = "analyze-unsafe"
+name = "unsafe-ast"
 version = "0.1.0"
 authors = ["Alex Ozdemir <aozdemir@hmc.edu>"]
 
@@ -9,8 +9,8 @@ rustc-serialize = "0"
 
 [[bin]]
 name = "emit-ast"
-path = "src/emit-ast/main.rs"
+path = "src/rust/emit-ast/main.rs"
 
 [[bin]]
 name = "download"
-path = "src/download/main.rs"
+path = "src/rust/download/main.rs"
