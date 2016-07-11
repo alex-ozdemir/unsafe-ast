@@ -4,7 +4,7 @@ lib
 target
 *.swp
 data-analysis/*
-!data-analysis/2016-07-11.tzr.gz
+!data-analysis/2016-07-11.tar.gz
 !data-analysis/2016-07-11.zip
 !data-analysis/unsafe.jq
 !data-analysis/initial-analysis.sh
