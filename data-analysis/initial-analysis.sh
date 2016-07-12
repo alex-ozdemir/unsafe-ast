@@ -24,6 +24,7 @@ run_jq_programs_if_needed() {
     unsafe_block_requirement_by_crate.txt
     unsafe_block_rel_size.txt
     unsafe_block_requirement.txt
+    unsafe_block_rel_size_and_req.txt
     unsafe_uses_by_crate.json
     unsafe_uses.json
     unsafe_contexts.json
@@ -73,6 +74,9 @@ run_jq_programs_if_needed() {
     # one list
     [unsafe_block_requirement.txt]='.used[]'
 
+    # Prints the relative size and requirment for each unsafe block
+    [unsafe_block_rel_size_and_req.txt]='include "unsafe"; unsafe_blocks_with_functions | .blocks[] | [block_relative_size, (.child | block_requirement)] | @tsv'
+
     # Makes a list of all indexed unsafe uses found in each crate, and stores
     # them by crate:
     # { name, uses: [{index, span, snippet, macro_origin, item: ... }, ...]}
@@ -88,7 +92,7 @@ run_jq_programs_if_needed() {
 
     # Lists all the closures which have their own unsafe uses, for each crate.
     # {name, closures: [{//closure_root_blocks//, ...}]
-    [closures.json]='closures_blocks_with_unsafe_uses'
+    [closures.json]='closure_blocks_with_unsafe_uses'
 
     # Lists the number of closures with unsafe uses in each crate (one number
     # per crate)
@@ -128,6 +132,7 @@ run_jq_programs_if_needed() {
     [unsafe_block_sizes.txt]=$all_data
     [unsafe_block_rel_sizes.json]=$all_data
     [unsafe_block_requirement.json]=$all_data
+    [unsafe_block_rel_size_and_req.txt]=$all_data
     [unsafe_block_rel_size_by_crate.txt]=unsafe_block_rel_sizes.json
     [unsafe_block_requirement_by_crate.txt]=unsafe_block_requirement.json
     [unsafe_block_rel_size.txt]=unsafe_block_rel_sizes.json
@@ -153,7 +158,7 @@ run_jq_programs_if_needed() {
         if [ ! -f "${file}" ]; then
             echo "  - Running ..."
             echo "    PGM: $pgm"
-            pv "${src}" | jq "${pgm}" -c > "${file}"
+            pv "${src}" | jq -c -r "${pgm}" > "${file}"
         else
             echo "  - Already done"
         fi

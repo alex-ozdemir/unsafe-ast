@@ -132,6 +132,8 @@ def is_origin_derive_macro: .macro_origin == "DeriveMacro";
 
 def get_child_blocks: .contents[] | select(is_indexed_block) | .item.fields[0];
 
+def get_indexed_child_containers: .contents[] | select(is_indexed_closure or is_indexed_block);
+
 def get_child_containers: .contents[] | select(is_indexed_closure or is_indexed_block) | .item.fields[0];
 
 def get_safe_child_blocks: get_child_blocks | select(is_safe_block);
@@ -147,8 +149,13 @@ def get_own_uses: recurse(get_child_containers; is_safe_block) | get_shallow_use
 # Takes a block, gets the accumulation of it and it's children's sizes
 def block_net_size: [recurse(get_child_containers; is_block) | .size] | (. | sum);
 
+def block_net_size_2: def r: ([get_child_containers | r] | sum) as $sum | ([get_indexed_child_containers | .index] | unique | length) as $stmnts_w_blocks | .size + $sum - $stmnts_w_blocks; r;
+
 # Given a block, produces a list of statement / final expression indices that require unsafe.
 def used_indices: [.contents[] | .index as $idx | if is_indexed_unsafe_use then $idx else if is_indexed_container and (is_indexed_unsafe_block | not) and ((.item.fields[0] | get_own_uses | length) > 0) then $idx else false end end | select(. != false)] | unique;
+
+# What fraction of the statements/final expressions in a block require unsafe
+def block_requirement: if .size > 0 then (used_indices | length) / .size else 0.0 end;
 
 ############################################################
 # Versatile Getters: Get all X in any subtree              #
@@ -165,7 +172,10 @@ def closure_blocks: .. | select(is_closure) | .fields[0];
 #############################################################################
 
 # Takes in a UAST
-def closure_blocks_with_unsafe_uses: {name, "closures": [ .functions | .[] | closure_blocks | select(get_own_uses | select(is_indexed_unsafe_use))]};
+def closure_blocks_with_unsafe_uses: {name, "closures": [ .functions[] | closure_blocks | select([get_own_uses] | map(is_indexed_unsafe_use) | any)]};
+
+# Takes in a UAST
+def closure_blocks_with_all_unsafe_uses: {name, "closures": [ .functions[] | closure_blocks | select([get_all_uses] | map(is_indexed_unsafe_use) | any)]};
 
 # Takes in a UAST
 def unsafe_blocks: {name, "blocks": [.functions | blocks | get_child_blocks | select(is_unsafe_block)]};
@@ -177,11 +187,14 @@ def all_unsafe_uses_in_unsafe_declarations: [.functions[] | select(.unsaf) | .bl
 def all_unsafe_uses: {name, "uses": [.functions[].block | get_all_uses | select(is_indexed_unsafe_use)]};
 
 # Takes in a UAST
-def unsafe_blocks_with_functions: {"name": .name, "blocks": [ .functions[] | . as $fn | blocks | select(is_unsafe_block) | {"parent": $fn.block, "child": .} ]};
+def unsafe_blocks_with_functions: {name, "blocks": [ .functions[] | . as $fn | blocks | select(is_unsafe_block) | {"parent": $fn.block, "child": .} ]};
+
+# Takes in an object {parent: BLOCK, child: BLOCK}
+def block_relative_size: (.child | block_net_size_2) as $csize | (.parent | block_net_size_2) as $psize | if $psize > 0 then $csize / $psize else 1.0 end;
 
 # Takes in a UAST
-def unsafe_blocks_rel_sizes: unsafe_blocks_with_functions | {name, "rel_sizes": ([.blocks[] | ((.child | block_net_size) / (.parent | block_net_size))] )};
+def unsafe_blocks_rel_sizes: unsafe_blocks_with_functions | {name, "rel_sizes": ([.blocks[] | block_relative_size] )};
 
 # Takes in a UAST
-def unsafe_blocks_requirement: {name, "used": ([.functions[] | blocks | select(is_unsafe_block) | if .size > 0 then (used_indices | length) / .size else 1.0 end ] )};
+def unsafe_blocks_requirement: {name, "used": ([.functions[] | blocks | select(is_unsafe_block) | block_requirement ] )};
 
